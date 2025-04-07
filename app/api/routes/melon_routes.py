@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.domain.crawling import controller
 from ...domain.crawling.service.melon_service import MelonService
 from ...foundation.infra.database.database import get_db
 import logging
