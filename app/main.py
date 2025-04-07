@@ -94,4 +94,4 @@ async def log_requests(request: Request, call_next):
 
 if __name__ == "__main__":
     logger.info("Starting application in development mode")
-    uvicorn.run(app, host="localhost", port=8080) 
+    uvicorn.run(app, host="localhost", port=8888) 
