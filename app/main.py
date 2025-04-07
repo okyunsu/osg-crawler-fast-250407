@@ -24,15 +24,16 @@ logging.getLogger("fastapi").setLevel(logging.DEBUG)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-@app.on_event("startup")
-async def startup_event():
-    logger.info("Application is starting up")
-
+# Initialize FastAPI app first
 app = FastAPI(
     title="Melon Chart Crawler API",
     description="멜론 차트 TOP100을 크롤링하는 API",
     version="1.0.0"
 )
+
+@app.on_event("startup")
+async def startup_event():
+    logger.info("Application is starting up")
 
 app.include_router(melon_router)
 
