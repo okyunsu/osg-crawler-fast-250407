@@ -1,3 +1,3 @@
-from .song_repository import SongRepository, InMemorySongRepository
+from .song_storage import SongRepository, InMemorySongRepository
 
 __all__ = ['SongRepository', 'InMemorySongRepository'] 

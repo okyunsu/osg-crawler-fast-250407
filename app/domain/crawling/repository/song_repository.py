@@ -1,54 +1,38 @@
-from abc import ABC, abstractmethod
-from typing import List, Dict
-from datetime import datetime
+from typing import List
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import insert
 from ..model.song import Song
 
-class SongRepository(ABC):
-    """노래 데이터 저장소 인터페이스"""
-    
-    @abstractmethod
-    def save_songs(self, songs: List[Song], date: datetime) -> bool:
-        """노래 목록을 저장합니다."""
-        pass
-    
-    @abstractmethod
-    def get_songs_by_date(self, date: datetime) -> List[Dict]:
-        """특정 날짜의 노래 목록을 조회합니다."""
-        pass
-    
-    @abstractmethod
-    def get_latest_songs(self) -> List[Dict]:
-        """가장 최근의 노래 목록을 조회합니다."""
-        pass
+class SongRepository:
+    def __init__(self, session: AsyncSession):
+        self._session = session
 
-class InMemorySongRepository(SongRepository):
-    """메모리 기반 노래 저장소 구현체"""
-    
-    def __init__(self):
-        self._storage: Dict[str, List[Dict]] = {}
-    
-    def save_songs(self, songs: List[Song], date: datetime) -> bool:
-        """노래 목록을 메모리에 저장합니다."""
-        date_str = date.strftime("%Y-%m-%d")
-        self._storage[date_str] = [
-            {
-                "rank": song.rank,
-                "title": song.title,
-                "artist": song.artist
-            }
-            for song in songs
-        ]
-        return True
-    
-    def get_songs_by_date(self, date: datetime) -> List[Dict]:
-        """특정 날짜의 노래 목록을 조회합니다."""
-        date_str = date.strftime("%Y-%m-%d")
-        return self._storage.get(date_str, [])
-    
-    def get_latest_songs(self) -> List[Dict]:
-        """가장 최근의 노래 목록을 조회합니다."""
-        if not self._storage:
-            return []
-        
-        latest_date = max(self._storage.keys())
-        return self._storage[latest_date] 
+    async def insert_songs(self, songs: List[Song]) -> None:
+        """여러 곡을 한 번에 데이터베이스에 저장합니다."""
+        try:
+            stmt = insert(Song).values([{
+                'rank': song.rank,
+                'title': song.title,
+                'artist': song.artist
+            } for song in songs])
+            
+            await self._session.execute(stmt)
+            await self._session.commit()
+        except Exception as e:
+            await self._session.rollback()
+            raise Exception(f"노래 저장 중 오류 발생: {str(e)}")
+
+    async def insert_song(self, rank: int, title: str, artist: str) -> None:
+        """단일 곡을 데이터베이스에 저장합니다."""
+        try:
+            stmt = insert(Song).values(
+                rank=rank,
+                title=title,
+                artist=artist
+            )
+            
+            await self._session.execute(stmt)
+            await self._session.commit()
+        except Exception as e:
+            await self._session.rollback()
+            raise Exception(f"노래 저장 중 오류 발생: {str(e)}")

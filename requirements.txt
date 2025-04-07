@@ -3,3 +3,5 @@ uvicorn==0.27.1
 beautifulsoup4==4.12.2
 aiohttp==3.9.1
 python-dotenv==1.0.1
+sqlalchemy==2.0.27
+asyncpg==0.29.0

@@ -1,5 +1,7 @@
-from fastapi import APIRouter, HTTPException, Request
-from app.domain.crawling.controller.melon_controller import MelonController
+from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy.ext.asyncio import AsyncSession
+from ...domain.crawling.service.melon_service import MelonService
+from ...foundation.infra.database.database import get_db
 import logging
 import traceback
 
@@ -7,10 +9,22 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 router = APIRouter(prefix="/melon", tags=["melon"])
-controller = MelonController()
 
 @router.get("/top100")
-async def get_top100(request: Request):
+async def get_top100(session: AsyncSession = Depends(get_db)):
+    """멜론 차트 TOP100을 크롤링하여 반환합니다."""
+    try:
+        service = MelonService(session)
+        songs = await service.crawl_top100()
+        return {
+            "status": "success",
+            "data": [{"rank": song.rank, "title": song.title, "artist": song.artist} for song in songs]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/top100_old")
+async def get_top100_old(request: Request):
     """멜론 차트 TOP100을 크롤링합니다."""
     request_id = id(controller)
     client_host = request.client.host if request.client else "unknown"
