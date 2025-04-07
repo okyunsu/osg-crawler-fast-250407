@@ -1,10 +1,20 @@
 from datetime import datetime, timezone
 from typing import Callable
-from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse, JSONResponse
 from app.api.routes.melon_routes import router as melon_router
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
+import logging
+import sys
+
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    stream=sys.stdout
+)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Melon Chart Crawler API",
@@ -26,6 +36,7 @@ current_time: Callable[[], str] = lambda: datetime.now(timezone.utc).strftime("%
 
 @app.get(path="/")
 async def home():
+    logger.info("Accessing home page")
     return HTMLResponse(content=f"""
 <body>
 <div style="width: 400px; margin: 50 auto;">
@@ -38,5 +49,28 @@ async def home():
 </body>
 """)
 
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Global error occurred: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": str(exc),
+            "path": str(request.url),
+            "type": type(exc).__name__
+        }
+    )
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    logger.debug(f"Request: {request.method} {request.url}")
+    try:
+        response = await call_next(request)
+        logger.debug(f"Response status: {response.status_code}")
+        return response
+    except Exception as e:
+        logger.error(f"Request failed: {e}", exc_info=True)
+        raise
+
 if __name__ == "__main__":
-    uvicorn.run(app, host="localhost", port=8888) 
+    uvicorn.run(app, host="localhost", port=8080) 
