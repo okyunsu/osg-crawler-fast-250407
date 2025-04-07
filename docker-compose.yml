@@ -1,10 +1,12 @@
 version: "3.8"
 
 services:
-  fastapi-app:
+  crawling:
     build: .
     ports:
-      - "8000:8000"
-    env_file:
-      - .env   # 👈 .env 직접 연결
+      - "8888:8888"
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONPATH=/app
     restart: always
