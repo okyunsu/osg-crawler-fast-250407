@@ -3,7 +3,7 @@ from typing import Callable
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
-from .api.routes import melon_router
+from app.api.routes import router as melon_router
 
 app = FastAPI(
     title="Melon Chart Crawler API",
