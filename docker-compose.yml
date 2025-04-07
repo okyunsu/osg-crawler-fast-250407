@@ -4,12 +4,12 @@ services:
   web:
     build: .
     ports:
-      - "${PORT:-8888}:${PORT:-8888}"
+      - "8080:8080"
     volumes:
       - .:/app
     environment:
       - PYTHONPATH=/app
-      - PORT=${PORT:-8888}
+      - PORT=8080
     working_dir: /app
-    command: uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8888} --reload
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
     restart: always
