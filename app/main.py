@@ -2,8 +2,9 @@ from datetime import datetime, timezone
 from typing import Callable
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
+from app.api.routes.melon_routes import router as melon_router
+import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import router as melon_router
 
 app = FastAPI(
     title="Melon Chart Crawler API",
@@ -33,7 +34,9 @@ async def home():
     <h3>{current_time()}</h3>
     <p>API 문서: <a href="/docs">/docs</a></p>
     <p>멜론 차트 TOP100: <a href="/melon/top100">/melon/top100</a></p>
-    <p>최근 크롤링 결과: <a href="/melon/latest">/melon/latest</a></p>
 </div>
 </body>
-""") 
+""")
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="localhost", port=8888) 
