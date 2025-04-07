@@ -8,5 +8,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 ENV PYTHONPATH=/app
+ENV PORT=8888
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8888"]
+# Add non-root user
+RUN adduser --disabled-password --gecos '' appuser
+RUN chown -R appuser:appuser /app
+USER appuser
+
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]

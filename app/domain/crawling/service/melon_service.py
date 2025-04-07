@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Dict
 from bs4 import BeautifulSoup
-import requests
+import aiohttp
 from ..model.song import Song
 from ..repository import InMemorySongRepository
 
@@ -15,13 +15,15 @@ class MelonService:
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         }
     
-    def crawl_top100(self) -> List[Song]:
+    async def crawl_top100(self) -> List[Song]:
         """멜론 차트 TOP100을 크롤링합니다."""
         try:
-            response = requests.get(self.url, headers=self.headers)
-            response.raise_for_status()
+            async with aiohttp.ClientSession() as session:
+                async with session.get(self.url, headers=self.headers) as response:
+                    response.raise_for_status()
+                    html = await response.text()
             
-            soup = BeautifulSoup(response.text, 'html.parser')
+            soup = BeautifulSoup(html, 'html.parser')
             songs = []
             
             for rank, row in enumerate(soup.select('tbody tr'), 1):

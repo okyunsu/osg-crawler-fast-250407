@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from typing import Callable
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
-from .api.routes.melon_routes import router as melon_router
+from app.api.routes.melon_routes import router as melon_router
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 

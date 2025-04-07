@@ -8,10 +8,10 @@ class MelonController:
     def __init__(self):
         self.service = MelonService()
     
-    def get_top100(self) -> Dict:
+    async def get_top100(self) -> Dict:
         """멜론 차트 TOP100을 크롤링하고 결과를 반환합니다."""
         try:
-            songs = self.service.crawl_top100()
+            songs = await self.service.crawl_top100()
             return {
                 "date": datetime.now().strftime("%Y-%m-%d"),
                 "total": len(songs),
