@@ -29,7 +29,7 @@ async def home():
     return HTMLResponse(content=f"""
 <body>
 <div style="width: 400px; margin: 50 auto;">
-    <h1> 멜론 차트 크롤러 API</h1>
+    <h1>멜론 차트 크롤러 API</h1>
     <h2>현재 서버 구동 중입니다.</h2>
     <h3>{current_time()}</h3>
     <p>API 문서: <a href="/docs">/docs</a></p>
