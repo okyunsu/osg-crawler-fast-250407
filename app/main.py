@@ -11,10 +11,22 @@ import sys
 # Configure logging
 logging.basicConfig(
     level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    stream=sys.stdout
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
 )
+
+# Set log levels for specific loggers
+logging.getLogger("uvicorn").setLevel(logging.INFO)
+logging.getLogger("fastapi").setLevel(logging.DEBUG)
+
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+@app.on_event("startup")
+async def startup_event():
+    logger.info("Application is starting up")
 
 app = FastAPI(
     title="Melon Chart Crawler API",
@@ -37,7 +49,8 @@ current_time: Callable[[], str] = lambda: datetime.now(timezone.utc).strftime("%
 @app.get(path="/")
 async def home():
     logger.info("Accessing home page")
-    return HTMLResponse(content=f"""
+    try:
+        content = f"""
 <body>
 <div style="width: 400px; margin: 50 auto;">
     <h1>멜론 차트 크롤러 API</h1>
@@ -47,11 +60,17 @@ async def home():
     <p>멜론 차트 TOP100: <a href="/melon/top100">/melon/top100</a></p>
 </div>
 </body>
-""")
+"""
+        logger.debug("Home page content generated successfully")
+        return HTMLResponse(content=content)
+    except Exception as e:
+        logger.error(f"Error generating home page: {e}", exc_info=True)
+        raise
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Global error occurred: {exc}", exc_info=True)
+    error_msg = f"Global error occurred: {exc}"
+    logger.error(error_msg, exc_info=True)
     return JSONResponse(
         status_code=500,
         content={
@@ -63,14 +82,15 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
-    logger.debug(f"Request: {request.method} {request.url}")
+    logger.info(f"Incoming request: {request.method} {request.url}")
     try:
         response = await call_next(request)
-        logger.debug(f"Response status: {response.status_code}")
+        logger.info(f"Request completed: {request.method} {request.url} - Status: {response.status_code}")
         return response
     except Exception as e:
-        logger.error(f"Request failed: {e}", exc_info=True)
+        logger.error(f"Request failed: {request.method} {request.url} - Error: {e}", exc_info=True)
         raise
 
 if __name__ == "__main__":
+    logger.info("Starting application in development mode")
     uvicorn.run(app, host="localhost", port=8080) 
